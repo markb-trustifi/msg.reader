@@ -18,7 +18,8 @@
 
 (function () {
 
-  var DataStream = require("./DataStream");
+  const TextDecoder = require('text-encoding').TextDecoder;
+  const DataStream = require("./DataStream");
 
   // constants
   var CONST = {
@@ -149,6 +150,8 @@
     var currentBlockIndex = offset % msgData.bigBlockLength;
 
     var startBlockOffset = blockOffsetData[currentBlock];
+    if (typeof startBlockOffset == "undefined")
+      return CONST.MSG.END_OF_CHAIN;
 
     return getBlockAt(ds, msgData, startBlockOffset)[currentBlockIndex];
   }
@@ -214,7 +217,7 @@
     var result = [];
     var startIndex = msgData.sbatStart;
 
-    for (var i = 0; i < msgData.sbatCount && startIndex != CONST.MSG.END_OF_CHAIN; i++) {
+    for (var i = 0; i < msgData.sbatCount && startIndex && startIndex != CONST.MSG.END_OF_CHAIN; i++) {
       result.push(startIndex);
       startIndex = getNextBlock(ds, msgData, startIndex);
     }
@@ -229,7 +232,6 @@
     var nextBlockAt = msgData.xbatStart;
     for (var i = 0; i < msgData.xbatCount; i++) {
       var xBatBlock = getBlockAt(ds, msgData, nextBlockAt);
-      nextBlockAt = xBatBlock[msgData.xBlockLength];
 
       var blocksToProcess = Math.min(remainingBlocks, msgData.xBlockLength);
       for (var j = 0; j < blocksToProcess; j++) {
@@ -240,6 +242,10 @@
         msgData.batData.push(blockStartAt);
       }
       remainingBlocks -= blocksToProcess;
+
+      nextBlockAt = xBatBlock[msgData.xBlockLength];
+      if (nextBlockAt == CONST.MSG.UNUSED_BLOCK || nextBlockAt == CONST.MSG.END_OF_CHAIN)
+        break;
     }
   }
 
@@ -287,6 +293,9 @@
     var propertyOffset = getBlockOffsetAt(msgData, propertyBlockOffset);
 
     for (var i = 0; i < propertyCount; i++) {
+      if(ds.byteLength < propertyOffset + CONST.MSG.PROP.TYPE_OFFSET)
+        break;
+
       var propertyType = ds.readByte(propertyOffset + CONST.MSG.PROP.TYPE_OFFSET);
       switch (propertyType) {
         case CONST.MSG.PROP.TYPE_ENUM.ROOT:
