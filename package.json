@@ -14,7 +14,7 @@
     "url": "git+https://github.com/ykarpovich/msg.reader.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/ykarpovich/msg.reader/issues"
   },
