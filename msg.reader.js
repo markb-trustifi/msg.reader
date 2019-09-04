@@ -147,8 +147,6 @@
   function getNextBlockInner(ds, msgData, offset, blockOffsetData) {
     var currentBlock = Math.floor(offset / msgData.bigBlockLength);
     var currentBlockIndex = offset % msgData.bigBlockLength;
-    if (!startBlockOffset)
-      return CONST.MSG.END_OF_CHAIN;
 
     var startBlockOffset = blockOffsetData[currentBlock];
 
@@ -216,7 +214,7 @@
     var result = [];
     var startIndex = msgData.sbatStart;
 
-    for (var i = 0; i < msgData.sbatCount && startIndex && startIndex != CONST.MSG.END_OF_CHAIN; i++) {
+    for (var i = 0; i < msgData.sbatCount && startIndex != CONST.MSG.END_OF_CHAIN; i++) {
       result.push(startIndex);
       startIndex = getNextBlock(ds, msgData, startIndex);
     }
