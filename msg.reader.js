@@ -18,6 +18,8 @@
 
 (function () {
 
+  var DataStream = require("./DataStream");
+
   // constants
   var CONST = {
     FILE_HEADER: uInt2int([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]),
@@ -145,6 +147,8 @@
   function getNextBlockInner(ds, msgData, offset, blockOffsetData) {
     var currentBlock = Math.floor(offset / msgData.bigBlockLength);
     var currentBlockIndex = offset % msgData.bigBlockLength;
+    if (!startBlockOffset)
+      return CONST.MSG.END_OF_CHAIN;
 
     var startBlockOffset = blockOffsetData[currentBlock];
 
@@ -212,7 +216,7 @@
     var result = [];
     var startIndex = msgData.sbatStart;
 
-    for (var i = 0; i < msgData.sbatCount && startIndex != CONST.MSG.END_OF_CHAIN; i++) {
+    for (var i = 0; i < msgData.sbatCount && startIndex && startIndex != CONST.MSG.END_OF_CHAIN; i++) {
       result.push(startIndex);
       startIndex = getNextBlock(ds, msgData, startIndex);
     }
@@ -303,7 +307,7 @@
 
   function createPropertyHierarchy(props, nodeProperty) {
 
-    if (nodeProperty.childProperty == CONST.MSG.PROP.NO_INDEX) {
+    if (!nodeProperty || nodeProperty.childProperty == CONST.MSG.PROP.NO_INDEX) {
       return;
     }
     nodeProperty.children = [];
@@ -341,7 +345,7 @@
 
   function fieldsDataDir(ds, msgData, dirProperty, fields) {
 
-    if (dirProperty.children && dirProperty.children.length > 0) {
+    if (dirProperty && dirProperty.children && dirProperty.children.length > 0) {
       for (var i = 0; i < dirProperty.children.length; i++) {
         var childProperty = msgData.propertyData[dirProperty.children[i]];
 
@@ -559,6 +563,16 @@
     }
   };
 
-  window.MSGReader = MSGReader;
+  // Export DataStream for amd environments
+  if (typeof define === 'function' && define.amd) {
+    define('MSGReader', [], function() {
+      return MSGReader;
+    });
+  }
+
+// Export DataStream for CommonJS
+  if (typeof module === 'object' && module && module.exports) {
+    module.exports = MSGReader;
+  }
 
 })();

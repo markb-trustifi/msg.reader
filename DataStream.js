@@ -1,3 +1,6 @@
+
+const TextDecoder = require('text-encoding').TextDecoder;
+
 /**
   DataStream reads scalars, arrays and structs of data from an ArrayBuffer.
   It's like a file-like DataView on steroids.
